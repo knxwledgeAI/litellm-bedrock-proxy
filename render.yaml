@@ -1,0 +1,30 @@
+# Render Blueprint — one web service (LiteLLM) + one managed Postgres.
+# In Render: New + → Blueprint → connect the repo containing these files.
+# It auto-provisions HTTPS and a public URL. Set the three secrets when prompted.
+
+services:
+  - type: web
+    name: litellm-proxy
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter            # ~$7/mo; small CPU box is plenty for a proxy
+    healthCheckPath: /health/liveliness
+    envVars:
+      - key: LITELLM_MASTER_KEY     # secret — paste in the Render dashboard
+        sync: false
+      - key: AWS_ACCESS_KEY_ID      # secret — from your Bedrock-only IAM user
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY  # secret
+        sync: false
+      - key: AWS_REGION_NAME
+        value: us-east-1
+      - key: DATABASE_URL           # auto-wired from the database below
+        fromDatabase:
+          name: litellm-db
+          property: connectionString
+
+databases:
+  - name: litellm-db
+    plan: basic-256mb        # cheapest paid tier; enables per-key budget tracking
+    databaseName: litellm
+    user: litellm

@@ -1,0 +1,33 @@
+# LiteLLM proxy config — fronts Amazon Bedrock with an OpenAI-compatible API.
+# Your AWS creds stay server-side; clients (Hermes/OpenClaw) only ever see a
+# LiteLLM virtual key + the base URL. Models below map to Bedrock model IDs.
+
+model_list:
+  # --- Kimi K2.5: instant mode (fast, no reasoning tokens) ---
+  - model_name: kimi-k2.5
+    litellm_params:
+      model: bedrock/moonshotai.kimi-k2.5
+      aws_region_name: us-east-1
+
+  # --- Kimi K2.5: thinking mode (full chain-of-thought) ---
+  # reasoning_effort is the verified Bedrock toggle (low | medium | high).
+  - model_name: kimi-k2.5-thinking
+    litellm_params:
+      model: bedrock/moonshotai.kimi-k2.5
+      aws_region_name: us-east-1
+      reasoning_effort: high
+
+  # --- gpt-oss-120b: same reasoning_effort knob (low | medium | high) ---
+  - model_name: gpt-oss-120b
+    litellm_params:
+      model: bedrock/openai.gpt-oss-120b-1:0
+      aws_region_name: us-east-1
+      reasoning_effort: medium
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY   # admin key — never give to colleague
+  database_url: os.environ/DATABASE_URL       # Postgres: needed for per-key budgets
+
+litellm_settings:
+  drop_params: true   # silently drop unsupported params instead of erroring
+  num_retries: 2
